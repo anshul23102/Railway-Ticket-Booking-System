@@ -14,6 +14,7 @@
         $result = $conn->query($sql);
         if($result->num_rows > 0){
             $_SESSION["adminuname"] = $uname;
+            $_SESSION["admin_uname"] = $uname;
            header("location: admin_home.php");
 
         }

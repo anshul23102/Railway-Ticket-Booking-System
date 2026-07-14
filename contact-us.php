@@ -24,13 +24,6 @@ if (isset($_POST['contact'])) {
         $msg = mysqli_real_escape_string($conn, $msg);
 
         // Check for duplicate entry
-<<<<<<< HEAD
-
-
-
-        // sql queery
-=======
->>>>>>> 9cde57e9d4fe1346c087eb8f14242abaee368fb0
         $sql1 = "SELECT * FROM contact WHERE name='$name' AND email='$email' AND message='$msg'";
         $result = $conn->query($sql1);
 

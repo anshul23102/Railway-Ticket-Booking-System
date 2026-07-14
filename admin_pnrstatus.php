@@ -2,7 +2,7 @@
 session_start();
 include('DBConnection.php');
 
-if (!isset($_SESSION["admin_uname"])) {
+if (!isset($_SESSION["adminuname"])) {
     header("location: ./Adminlogin.php?logout=1");
     exit();
 }
@@ -219,6 +219,5 @@ if (isset($_GET['show'])) {
     </div>
 </body>
 </html>
-
 
 

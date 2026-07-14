@@ -22,7 +22,6 @@
 
             var numbers = /^[0-9]+$/;
             var alpha = /^[a-zA-Z]+$/;
-            var pass = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,15}$/;
 
             if (uname == "") {
                 //alert("if execute");
@@ -48,16 +47,6 @@
                 document.getElementById("er_pass1").innerHTML="";
                 document.getElementById("pass1").style="border:none;box-shadow:none";           
             }
-            if (!pass1.match(pass)) {
-                document.getElementById("er_pass1").innerHTML="password combination must have character,number,and spcial symbol <br> and length should be greater than 6";
-                document.getElementById("pass1").style="border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-                document.getElementById("pass1").focus();
-                return false;
-            }
-            else{
-                document.getElementById("er_addpin").innerHTML="";
-                document.getElementById("pin").style="border:none;box-shadow:none";           
-            }
             if (pass2 == "") {
                 document.getElementById("er_pass2").innerHTML="confirm password";
                 document.getElementById("pass2").style="border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
@@ -67,16 +56,6 @@
             else{
                 document.getElementById("er_pass2").innerHTML="";
                 document.getElementById("pass2").style="border:none;box-shadow:none";           
-            }
-            if (!pass2.match(pass)) {
-                document.getElementById("er_pass2").innerHTML="password combination must have character,number,and spcial symbol <br> and length should be greater than 6";
-                document.getElementById("pass2").style="border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-                document.getElementById("pass2").focus();
-                return false;
-            }
-            else{
-                document.getElementById("er_addpin").innerHTML="";
-                document.getElementById("pin").style="border:none;box-shadow:none";           
             }
             if (pass1 != pass2) {
                 document.getElementById("er_pass2").innerHTML="password not matched";

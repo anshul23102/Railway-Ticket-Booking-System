@@ -12,6 +12,7 @@
     if(isset($_SESSION["adminuname"])){
         $_SESSION["adminuname"]= null;
         unset($_SESSION["adminuname"]);    
+        unset($_SESSION["admin_uname"]);    
     }
     session_destroy();
 

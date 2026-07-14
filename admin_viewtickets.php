@@ -6,7 +6,7 @@
     include('DBConnection.php');
 
     // checked whther user login or logout
-    if(isset($_SESSION["admin_uname"])){
+    if(!isset($_SESSION["adminuname"])){
             header("location: ./Adminlogin.php?logout=1");
     }
     include("adminheader2.html");
@@ -213,6 +213,5 @@
     </div>
 </body>
 </html>
-
 
 

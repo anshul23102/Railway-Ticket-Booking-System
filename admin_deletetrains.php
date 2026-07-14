@@ -6,7 +6,7 @@
     include('DBConnection.php');
 
     // checked whther user login or logout
-    if(isset($_SESSION["admin_uname"])){
+    if(!isset($_SESSION["adminuname"])){
             header("location: ./Adminlogin.php?logout=1");
     }
     include("adminheader2.html");
@@ -98,7 +98,7 @@
     	   <?php include("adminmenu.html"); ?>
         </div>
         <div class="col-12 col-sm-8">
-            <form name="payForm" onsubmit="return(pnrvalid());" class="m-5 p-5 border bg-light" action="" method="get">
+            <form name="payForm" class="m-5 p-5 border bg-light" action="" method="get">
             <div class="row">
                 <div class="col-12">
                     <h4 class="navbar-brand text-primary">Train Number:</h4>
@@ -139,6 +139,5 @@
     </div>
 </body>
 </html>
-
 
 

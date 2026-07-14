@@ -40,6 +40,16 @@
             background-size: 100%;
             background-repeat: no-repeat;
         }*/
+        .top-nav-links {
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.75rem;
+        }
+        .top-nav-links .nav-link {
+            white-space: nowrap;
+            padding-left: 0.35rem;
+            padding-right: 0.35rem;
+        }
 
     </style>
 
@@ -53,19 +63,19 @@
         </button>
         <div class="navbar-brand ml-auto"><a href="index.php" class="text-light hvr-grow" style="text-decoration: none;">Indian Railways</a></div>
         <div class="navbar-collapse collapse" id="myNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a href="" class="nav-link">♣</a></li>
-                <li class="nav-item"><a href="" class="nav-link">
+            <ul class="navbar-nav ml-auto top-nav-links">
+                <li class="nav-item"><span class="nav-link">♣</span></li>
+                <li class="nav-item"><span class="nav-link">
                     <script type="text/javascript">
                         var today = new Date();
                         var date = today.getDate()+'-'+(today.getMonth()+1)+'-'+today.getFullYear();
                         var time = " [ " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+ " ]";
                         var dateTime = date+' '+time;
                         document.write(dateTime);
-                    </script></a></li>
+                    </script></span></li>
                 <li class="nav-item"><a href="login.php" class="nav-link text-light ">Login</a></li>
                 <li class="nav-item"><a href="register.php" class="nav-link text-light">Register</a></li>
-                <li class="nav-item"><a href="Adminlogin.php" class="nav-link text-danger">Admin Login</a></li>
+                <li class="nav-item"><a href="Adminlogin.php" class="nav-link text-light">Admin Login</a></li>
             </ul>
         </div>
     </nav>

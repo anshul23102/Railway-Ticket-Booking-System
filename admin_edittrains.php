@@ -2,7 +2,7 @@
     session_start();
     include('DBConnection.php');
 
-    if(isset($_SESSION["admin_uname"])){
+    if(!isset($_SESSION["adminuname"])){
         header("location: ./Adminlogin.php?logout=1"); 
     }
 
@@ -88,7 +88,7 @@
             <?php include("adminmenu.html"); ?>
         </div>
         <div class="col-12 col-sm-9">
-            <form name="payForm" onsubmit="return(pnrvalid());" class="m-5 p-5 border bg-light" action="" method="get">
+            <form name="payForm" class="m-5 p-5 border bg-light" action="" method="get">
                 <div class="row">
                     <div class="col-12">
                         <h4 class="navbar-brand text-primary">Train Number:</h4>
@@ -112,7 +112,10 @@
                     <input type="hidden" name="station_no" value="<?php echo $data['station_no']; ?>">
 
                     <div class="col-sm-6 col-md-3"><h5>Train No:</h5></div>
-                    <div class="col-sm-6 col-md-3"><input class="form-control" type="text" value="<?php echo $data['train_no']; ?>" name="trainno" disabled></div>
+                    <div class="col-sm-6 col-md-3">
+                        <input class="form-control" type="text" value="<?php echo $data['train_no']; ?>" disabled>
+                        <input type="hidden" name="trainno" value="<?php echo $data['train_no']; ?>">
+                    </div>
 
                     <div class="col-sm-6 col-md-3"><h5>Train Name:</h5></div>
                     <div class="col-sm-6 col-md-3"><input class="form-control" type="text" name="trainname" value="<?php echo $data['train_name']; ?>"></div>

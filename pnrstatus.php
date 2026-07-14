@@ -1,194 +1,62 @@
-<?php 
-
-<<<<<<< HEAD
-    session_start();
-
-    include('DBConnection.php');
-    include('Details.php');
-
-    // checked whther user login or logout
-    if(!isset($_SESSION["uname"])){
-        $uname = $_SESSION["uname"];
-            header("location: ./index.php?logout=1");
-    }
-    include("header2.php");
-    $train_no = '';
-
-    //checked is show btn is clicked or not
-    if (isset($_GET['show'])) {
-
-        //stored the user entered pnr number
-        $pnr = $_GET['pnr'];
-
-        //query for fatching data related to pnr number
-        $sql = "select t.train_no,t.train_name,s.source,s.destination,ti.ticket_no,
-                ti.phno,ti.status,s.depart_time,s.arrival_time,ti.date, ti.username from train 
-                t, station s, ticket ti where t.train_no = s.train_no and 
-                s.station_no = ti.station_no and ti.ticket_no = '$pnr'";
-
-
-
-        $result = $conn->query($sql);
-    }
-
-
-    //checked is user clicked cancel btn or not
-    if(isset($_POST['cticket'])){
-
-        // here also get pnr number
-        $pnr = $_GET['pnr'];
-        
-          // stored train_number from session['train_no']
-          $train_no = $_SESSION['train_no'];
-
-                    // if ticket alredy cancel then the query not reexecute on
-                    //resubmit of page 
-                    //first time this is session is not set so it execute else part and cancel the ticket and increase set_avil in db
-                    if(isset($_SESSION['update'])){
-                        echo "<script> alert('ticket alredy cancel'); </script>";
-                        // unset($_SESSION['update']);
-                        // we can unset this session in index page also
-                    }
-                    else{
-
-                        // instead of deleting data we used status col 
-                        //if ticket cancel it going to set cancclled
-                        $sql = "update ticket set status = 'cancelled' where 
-                                ticket_no = '$pnr'";
-                        if($conn->query($sql) == true){
-
-                            // after update ticket status then increase set_avail by one for related train with ticket
-                             $sql5 = "update train set seat_avail =  seat_avail+1 where train_no = '$train_no'";
-
-                            if($conn->query($sql5) == true){
-                                //set train_no session null, no use futher
-                                $_SESSION['train_no'] = null;
-                                unset($_SESSION['train_no']);
-
-                                // set update session true so after resubmiting this page it execute the if part that is above and show msg i.e ticket is already cancelled
-                                $_SESSION['update'] = true;
-                            }
-                            else{
-                                echo $conn->error;
-                            }
-                            echo "<script> alert('ticket cancel'); </script>";
-                        }   
-                        else{
-                            echo $conn->error;
-
-                        }
-                    } //session update else ends                   
-
-    } //ends of cticket
-   
- ?>
-
-
-
-=======
+<?php
 session_start();
 include('DBConnection.php');
-include('Details.php');
 
 if (!isset($_SESSION["uname"])) {
     header("location: ./index.php?logout=1");
+    exit();
 }
 
 include("header2.php");
-$train_no = '';
 
-if (isset($_GET['show'])) {
-    $pnr = trim($_GET['pnr']);
+$uname = $_SESSION["uname"];
+$ticket = null;
+$passengers = null;
+$message = "";
 
-    $pnr_file = file("pnr_numbers.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $pnr_found = false;
-    $pnr_status = "";
-    $pnr_date = "";
+if (isset($_POST['cticket']) && isset($_POST['pnr'])) {
+    $pnr = mysqli_real_escape_string($conn, $_POST['pnr']);
+    $ticket_result = $conn->query("SELECT train_no, status FROM ticket WHERE ticket_no = '$pnr' AND username = '$uname'");
 
-    foreach ($pnr_file as $line) {
-        list($stored_pnr, $status, $date) = explode("|", trim($line));
-        if ((string)$stored_pnr === (string)$pnr) {
-            $pnr_found = true;
-            $pnr_status = $status;
-            $pnr_date = $date;
-            break;
+    if ($ticket_result && $ticket_result->num_rows > 0) {
+        $ticket_data = $ticket_result->fetch_assoc();
+        if ($ticket_data['status'] === 'cancelled') {
+            $message = "Ticket is already cancelled.";
+        } else {
+            $passenger_count_result = $conn->query("SELECT COUNT(*) AS total FROM passanger WHERE ticket_no = '$pnr'");
+            $passenger_count = $passenger_count_result->fetch_assoc()['total'];
+            $conn->query("UPDATE ticket SET status = 'cancelled' WHERE ticket_no = '$pnr' AND username = '$uname'");
+            $conn->query("UPDATE train SET seat_avail = seat_avail + $passenger_count WHERE train_no = '{$ticket_data['train_no']}'");
+            $message = "Ticket cancelled successfully.";
         }
-    }
-
-    if ($pnr_found) {
-        $sql = "SELECT t.train_no, t.train_name, s.source, s.destination, ti.ticket_no,
-                       ti.phno, ti.status, s.depart_time, s.arrival_time, ti.date, ti.username
-                FROM train t, station s, ticket ti
-                WHERE t.train_no = s.train_no 
-                  AND s.station_no = ti.station_no 
-                  AND ti.ticket_no = '$pnr'";
-
-        $result = $conn->query($sql);
     } else {
-        echo "<script> alert('Invalid PNR Number'); window.history.back(); </script>";
+        $message = "PNR not found for your account.";
     }
 }
 
-if (isset($_POST['cticket'])) {
-    $pnr = $_GET['pnr'];
-    $train_no = $_SESSION['train_no'];
+if (isset($_GET['show']) && isset($_GET['pnr'])) {
+    $pnr = mysqli_real_escape_string($conn, $_GET['pnr']);
+    $sql = "SELECT ti.ticket_no, ti.status, ti.date, ti.phno, ti.email, ti.username,
+                   t.train_no, t.train_name, t.class,
+                   s.source, s.destination, s.depart_time, s.arrival_time, s.fare
+            FROM ticket ti
+            INNER JOIN train t ON t.train_no = ti.train_no
+            INNER JOIN station s ON s.station_no = ti.station_no
+            WHERE ti.ticket_no = '$pnr' AND ti.username = '$uname'";
+    $result = $conn->query($sql);
 
-    if (isset($_SESSION['update'])) {
-        echo "<script> alert('Ticket already cancelled'); </script>";
+    if ($result && $result->num_rows > 0) {
+        $ticket = $result->fetch_assoc();
+        $passengers = $conn->query("SELECT * FROM passanger WHERE ticket_no = '$pnr'");
     } else {
-        $sql = "UPDATE ticket SET status = 'cancelled' WHERE ticket_no = '$pnr'";
-        if ($conn->query($sql) === true) {
-            $sql5 = "UPDATE train SET seat_avail = seat_avail + 1 WHERE train_no = '$train_no'";
-            if ($conn->query($sql5) === true) {
-                unset($_SESSION['train_no']);
-                $_SESSION['update'] = true;
-            } else {
-                echo $conn->error;
-            }
-            echo "<script> alert('Ticket cancelled'); </script>";
-        } else {
-            echo $conn->error;
-        }
+        $message = "PNR not found for your account.";
     }
 }
 ?>
->>>>>>> 9cde57e9d4fe1346c087eb8f14242abaee368fb0
 
 <!doctype html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
-	<title>IR</title>
-	<!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <link rel="icon" type="icon/png" href="asset/img/logo/rail_icon.png">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="asset/css/bootstrap.min.css">
-
-    <!-- :start of optional css-->
-
-    <!-- font-awesome for icon -->
-    <link rel="stylesheet" href="asset/font-awesome/css/all.min.css">
-
-    <!-- animation css -->
-    <link rel="stylesheet" href="asset/css/animate.css">
-
-    <!-- hover css animations -->
-    <link rel="stylesheet" href="asset/css/hover-min.css">
-
-    <!-- custom css -->
-    <link rel="stylesheet" type="text/css" href="asset/css/custom.css">
-
-
-    <!-- :end of optional css -->
-
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-=======
     <title>IR</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -198,252 +66,93 @@ if (isset($_POST['cticket'])) {
     <link rel="stylesheet" href="asset/css/animate.css">
     <link rel="stylesheet" href="asset/css/hover-min.css">
     <link rel="stylesheet" type="text/css" href="asset/css/custom.css">
->>>>>>> 9cde57e9d4fe1346c087eb8f14242abaee368fb0
     <script src="asset/js/jquery-3.4.1.slim.min.js"></script>
     <script src="asset/js/popper.min.js"></script>
     <script src="asset/js/bootstrap.min.js"></script>
-    <script src="asset/js/validation.js"></script>
-<<<<<<< HEAD
-
-    <style>
-
-        .bg-black{
-            background-color:black;
-        }
-
-    </style>
-
 </head>
 <body class="alert-light">
-
-	<!-- header navbar -->
-
-<!-- search button for train -->
     <div class="container">
-        <form name="payForm" onsubmit="return(pnrvalid());" class="m-5 p-5 border bg-light" action="" method="get">
-        <div class="row">
-            <div class="col-12">
-                <h4 class="navbar-brand text-primary">PNR Status/cancel ticket:</h4>
-=======
-    <style>
-        .bg-black {
-            background-color: black;
-        }
-    </style>
-</head>
-<body class="alert-light">
-<div class="container">
-    <form name="payForm" onsubmit="return(pnrvalid());" class="m-5 p-5 border bg-light" action="" method="get">
-        <div class="row">
-            <div class="col-12">
-                <h4 class="navbar-brand text-primary">PNR Status/Cancel Ticket:</h4>
->>>>>>> 9cde57e9d4fe1346c087eb8f14242abaee368fb0
+        <form class="m-5 p-5 border bg-light" action="" method="get">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="navbar-brand text-primary">PNR Status / Cancel Ticket</h4>
+                </div>
+                <div class="col-8">
+                    <input class="form-control" type="text" placeholder="Enter PNR Number" name="pnr" id="pnr" required>
+                </div>
+                <div class="col-4">
+                    <input type="submit" class="btn btn-dark text-light" value="Get Status" name="show">
+                </div>
             </div>
-            <div class="col-8">
-                <input class="form-control" type="text" placeholder="Enter PNR Number" name="pnr" id="pnr" maxlength="5">
-                <span id="er_pnr" class="text-red"></span>
-            </div>
-<<<<<<< HEAD
-            <div class="col-4">      
-                <input type="submit" class="btn btn-dark text-light" value="Get Status" name="show">
-            </div>
-        </div>
         </form>
     </div>
 
-<!-- table for trains records -->
     <div class="container">
-        <table class="table table-bordered text-center">
-            <?php 
-            if (isset($_GET['show']) || isset($_POST['cticket'])) {
+        <?php if ($message !== "") { ?>
+            <div class="alert alert-info"><?php echo $message; ?></div>
+        <?php } ?>
 
-              if($result->num_rows > 0){ ?>
-            <tr class="table-primary">
-                <th>PRN NO.</th>
-                <th>Status</th>
-                <th>Train No.</th>
-                <th>Train Name</th>
-                <th>Source</th>
-                <th>Destination</th>
-                <th>Departure Time</th>
-                <th>Arrival Time</th>
-                <th>Date</th>
-                <th>Mobile No.</th>
-                <th>Booked by</th>
-                <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-            </tr>
-             <?php   while($data = $result->fetch_assoc()){
-             ?>
-            <tr>
-                <td><?php echo $data['ticket_no']; ?></td>
-                <td class="text-danger text-bold"><?php echo $data['status']; ?></td>
-                <td><?php echo $data['train_no']; ?></td>
-                <?php $_SESSION['train_no'] = $data['train_no']; ?>
-                <td><?php echo $data['train_name']; ?></td>
-                <td><?php echo $data['source']; ?></td>
-                <td><?php echo $data['destination']; ?></td>
-                <td><?php echo $data['depart_time']; ?></td>
-                <td><?php echo $data['arrival_time']; ?></td>
-                <td><?php echo $data['date']; ?></td>
-                <td><?php echo $data['phno']; ?></td>
-                <td><?php echo $data['username']; ?></td>
-                <td>
-                    <form action="" method="post">
-                        <input type="hidden" name="trainno" value="<?php echo $data['train_no'] ;?>">
-                        <button name="cticket" class="text-light btn btn-dark hvr-grow"> Cancel Ticket</button>
-                    </form>
-                </td>
-            </tr>
-            <?php 
-            } //while ends
-            } // if ends
-            else{
-                echo "<script> alert('invalid pnr'); </script>";
-            }
-            } //show ends 
-         ?>
-        </table>
-    </div>
-
-
-
-    <!-- Footer -->
-    <?php include('footer.html') ?>
-	
-</body>
-</html>
-
-
-
-<script type="text/javascript">
-
-    function pnrvalid(){
-            // alert("call in validation");
-            var pnr = document.payForm.pnr.value;
-
-            var numbers = /^[0-9]+$/;
-
-            if (pnr == "" ) {
-                document.getElementById("er_pnr").innerHTML="ENTER PRN NO";
-                document.getElementById("pnr").style="border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-                document.getElementById("pnr").focus();
-                return false;
-            }
-            else{
-                document.getElementById("er_pnr").innerHTML="";
-                document.getElementById("pnr").style="border:none;box-shadow:none";           
-            }
-
-            if (!pnr.match(numbers)) {
-                document.getElementById("er_pnr").innerHTML="enter only numbers";
-                document.getElementById("pnr").style="border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-                document.getElementById("pnr").focus();
-                return false;
-            }
-            else{
-                document.getElementById("er_pnr").innerHTML="";
-                document.getElementById("pnr").style="border:none;box-shadow:none";           
-            }
-            // if (pnr.length > 5 || pnr.length < 5) {
-            //     document.getElementById("er_pnr").innerHTML="enter 5 digit valid number";
-            //     document.getElementById("pnr").style="border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-            //     document.getElementById("pnr").focus();
-            //     return false;
-            // }
-            // else{
-            //     document.getElementById("er_pnr").innerHTML="";
-            //     document.getElementById("pnr").style="border:none;box-shadow:none";           
-            // }
-            return true;
-
-
-        }
-
-
-=======
-            <div class="col-4">
-                <input type="submit" class="btn btn-dark text-light" value="Get Status" name="show">
-            </div>
-        </div>
-    </form>
-</div>
-
-<div class="container">
-    <table class="table table-bordered text-center">
-        <?php 
-        if (isset($_GET['show']) || isset($_POST['cticket'])) {
-            if (isset($result) && $result->num_rows > 0) { ?>
+        <?php if ($ticket) { ?>
+            <table class="table table-bordered text-center bg-white">
                 <tr class="table-primary">
-                    <th>PNR NO.</th>
+                    <th>PNR No.</th>
                     <th>Status</th>
                     <th>Train No.</th>
                     <th>Train Name</th>
                     <th>Source</th>
                     <th>Destination</th>
-                    <th>Departure Time</th>
-                    <th>Arrival Time</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
                     <th>Date</th>
-                    <th>Mobile No.</th>
-                    <th>Booked by</th>
+                    <th>Mobile</th>
+                    <th>Booked By</th>
                     <th>Action</th>
                 </tr>
-                <?php while ($data = $result->fetch_assoc()) { ?>
-                    <tr>
-                        <td><?php echo $data['ticket_no']; ?></td>
-                        <td class="text-danger text-bold"><?php echo $data['status']; ?></td>
-                        <td><?php echo $data['train_no']; ?></td>
-                        <?php $_SESSION['train_no'] = $data['train_no']; ?>
-                        <td><?php echo $data['train_name']; ?></td>
-                        <td><?php echo $data['source']; ?></td>
-                        <td><?php echo $data['destination']; ?></td>
-                        <td><?php echo $data['depart_time']; ?></td>
-                        <td><?php echo $data['arrival_time']; ?></td>
-                        <td><?php echo $data['date']; ?></td>
-                        <td><?php echo $data['phno']; ?></td>
-                        <td><?php echo $data['username']; ?></td>
-                        <td>
-                            <form action="" method="post">
-                                <input type="hidden" name="trainno" value="<?php echo $data['train_no']; ?>">
-                                <button name="cticket" class="text-light btn btn-dark hvr-grow">Cancel Ticket</button>
+                <tr>
+                    <td><?php echo $ticket['ticket_no']; ?></td>
+                    <td class="text-danger text-bold"><?php echo $ticket['status']; ?></td>
+                    <td><?php echo $ticket['train_no']; ?></td>
+                    <td><?php echo $ticket['train_name']; ?></td>
+                    <td><?php echo $ticket['source']; ?></td>
+                    <td><?php echo $ticket['destination']; ?></td>
+                    <td><?php echo $ticket['depart_time']; ?></td>
+                    <td><?php echo $ticket['arrival_time']; ?></td>
+                    <td><?php echo $ticket['date']; ?></td>
+                    <td><?php echo $ticket['phno']; ?></td>
+                    <td><?php echo $ticket['username']; ?></td>
+                    <td>
+                        <?php if ($ticket['status'] !== 'cancelled') { ?>
+                            <form method="post" action="">
+                                <input type="hidden" name="pnr" value="<?php echo $ticket['ticket_no']; ?>">
+                                <button type="submit" name="cticket" class="btn btn-danger btn-sm">Cancel</button>
                             </form>
-                        </td>
-                    </tr>
-                <?php } 
-            } else {
-                echo "<script> alert('Invalid PNR'); </script>";
-            }
-        } ?>
-    </table>
-</div>
+                        <?php } else { ?>
+                            Cancelled
+                        <?php } ?>
+                    </td>
+                </tr>
+            </table>
 
-<?php include('footer.html'); ?>
+            <h5>Passengers</h5>
+            <table class="table table-bordered bg-white">
+                <tr class="table-primary">
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Seat No.</th>
+                </tr>
+                <?php while ($passenger = $passengers->fetch_assoc()) { ?>
+                    <tr>
+                        <td><?php echo $passenger['p_name']; ?></td>
+                        <td><?php echo $passenger['p_age']; ?></td>
+                        <td><?php echo $passenger['p_gender']; ?></td>
+                        <td><?php echo $passenger['seat_no']; ?></td>
+                    </tr>
+                <?php } ?>
+            </table>
+        <?php } ?>
+    </div>
+
+    <?php include('footer.html'); ?>
 </body>
 </html>
-
-<script type="text/javascript">
-    function pnrvalid() {
-        var pnr = document.payForm.pnr.value;
-        var numbers = /^[0-9]+$/;
-
-        if (pnr === "") {
-            document.getElementById("er_pnr").innerHTML = "ENTER PNR NO";
-            document.getElementById("pnr").style = "border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-            return false;
-        }
-        if (!pnr.match(numbers)) {
-            document.getElementById("er_pnr").innerHTML = "Enter only numbers";
-            document.getElementById("pnr").style = "border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-            return false;
-        }
-        if (pnr.length != 5) {
-            document.getElementById("er_pnr").innerHTML = "PNR must be 5 digits";
-            document.getElementById("pnr").style = "border-color: #f00;box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25)";
-            return false;
-        }
-
-        document.getElementById("er_pnr").innerHTML = "";
-        document.getElementById("pnr").style = "border:none;box-shadow:none";
-        return true;
-    }
->>>>>>> 9cde57e9d4fe1346c087eb8f14242abaee368fb0
-</script>

@@ -96,13 +96,6 @@
     </style>
 </head>
 <body>
-    <!-- Admin Login Button - Visible on Home Page -->
-    <div style="position: absolute; top: 15px; right: 30px; z-index: 9999;">
-        
-        <a href="Adminlogin.php" class="btn btn-danger">Admin Login</a>
-    </div>
-
-
     <div class="row bg-img text-light">
         <div class="col-12 col-sm-12 col-md-4 offset-1">
             <!-- Add AOS animation here -->

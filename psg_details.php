@@ -154,7 +154,7 @@
     <div class="row">
         <!-- col-8 left side -->
         <div class="col-9">
-            <form action="./review.php" name="psgForm" method="post" onsubmit="return(check());">
+            <form action="./review.php" name="psgForm" method="post">
                 <!-- input block -->
                 <div class="row alert alert-dark shadow p-2 pb-3 bg-white" id="1">
                 <div class="col-12 mb-3">

@@ -64,6 +64,16 @@
             background-size: 100%;
             background-repeat: no-repeat;
         }*/
+        .top-nav-links {
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.75rem;
+        }
+        .top-nav-links .nav-link {
+            white-space: nowrap;
+            padding-left: 0.35rem;
+            padding-right: 0.35rem;
+        }
 
     </style>
 
@@ -77,19 +87,19 @@
         </button>
         <div class="navbar-brand ml-auto"><a href="index.php" class="text-light hvr-grow" style="text-decoration: none;">Indian Railways</a></div>
         <div class="navbar-collapse collapse" id="myNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a href="" class="nav-link">welcome, <?php echo $name ?></a></li>
-                <li class="nav-item"><a href="" class="nav-link">
+            <ul class="navbar-nav ml-auto top-nav-links">
+                <li class="nav-item"><span class="nav-link">welcome, <?php echo $name ?></span></li>
+                <li class="nav-item"><span class="nav-link">
                     <script type="text/javascript">
                         var today = new Date();
                         var date = today.getDate()+'-'+(today.getMonth()+1)+'-'+today.getFullYear();
                         var time = " [ " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+ " ]";
                         var dateTime = date+' '+time;
                         document.write(dateTime);
-                    </script></a></li>
+                    </script></span></li>
                 <li class="nav-item"><a href="logout.php?logout=1" class="nav-link text-light ">Logout</a></li>
                 <li class="nav-item"><a href="register.php" class="nav-link text-light">Register</a></li>
-                <li class="nav-item"><a href="Adminlogin.php" class="nav-link text-danger">Admin Login</a></li>
+                <li class="nav-item"><a href="Adminlogin.php" class="nav-link text-light">Admin Login</a></li>
             </ul>
         </div>
     </nav>
@@ -120,6 +130,7 @@ var dateTime = date+' '+time;
                         <a href="trainschedule.php" class="dropdown-item">Train Schedule</a>
                         <a href="pnrstatus.php" class="dropdown-item">PNR Status</a>
                         <a href="pnrstatus.php" class="dropdown-item">Cancel Ticket</a>
+                        <a href="my_tickets.php" class="dropdown-item">My Tickets</a>
                         <a href="index.php" class="dropdown-item">Book Ticket</a>
                     </div>
                 </li><li class="nav-item"><a href="places.php" class="nav-link">Historical Places</a></li>
