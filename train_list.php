@@ -1,8 +1,7 @@
 <?php 
     // this page showing train-list to user on there entered inputs
     session_start();
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
+   
     
     // Uncomment for debugging
     // echo "<pre>SESSION: ";
